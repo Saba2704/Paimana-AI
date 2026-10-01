@@ -205,7 +205,7 @@ def populate_sih_template(template_path: str, output_path: str, team_name="Team 
             p_b.space_before = Pt(3)
 
     # =========================================================================
-    # SLIDE 3: Technical Approach (Architecture + Tech Stack Logos)
+    # SLIDE 3: Technical Approach (Visual Architecture Diagram + Tech Stack)
     # =========================================================================
     s3 = prs.slides[2]
     for shape in s3.shapes:
@@ -214,47 +214,19 @@ def populate_sih_template(template_path: str, output_path: str, team_name="Team 
         if shape.has_text_frame and "Technologies to be used" in shape.text_frame.text:
             shape.text_frame.clear()
 
-    # Left Box: System Architecture (4-Tier)
-    arch_box = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(1.3), Inches(7.6), Inches(5.55))
-    arch_box.fill.solid()
-    arch_box.fill.fore_color.rgb = WHITE
-    arch_box.line.color.rgb = NAVY
-    arch_box.line.width = Pt(1.5)
-
-    tf_a = arch_box.text_frame
-    tf_a.word_wrap = True
-    p_a0 = tf_a.paragraphs[0]
-    p_a0.text = "SYSTEM ARCHITECTURE (FOUR-TIER PIPELINE)"
-    p_a0.font.name = "Arial"
-    p_a0.font.size = Pt(12)
-    p_a0.font.bold = True
-    p_a0.font.color.rgb = NAVY
-
-    tiers = [
-        ("Tier 1: Data Ingestion & Preprocessing Layer", "• Standard CUF Fields: Project ID, sanctioned costs, DOC, % progress, milestones, delay check flags.\n• Augmented External Indicators: Contractor Delivery Score, Terrain Index, WPI Commodity Exposure, Coordination Nodes.\n• Derived Indicators: Financial Burn to Physical Progress Divergence Ratio, Milestone Slippage Velocity."),
-        ("Tier 2: Analytical Core & Predictive ML Models", "• Cost Overrun Predictor: HistGradientBoosting regressor predicting % cost escalation and rupee amount.\n• Schedule Delay Predictor: Regressor predicting months of schedule slippage & revised commissioning date.\n• Classification Engine: Probabilistic classifiers identifying severe overruns (>20%) and delay risks (>12 mo)."),
-        ("Tier 3: Decision Engine, Risk Scoring & Explainability", "• Composite Risk Index (CRI 0-100): Weighted formula evaluating Financial, Velocity, Clearance & Execution risk.\n• 4 Autonomous EWS Alerts: Ghost Progress, Milestone Cascade, Velocity Cliff, and Budget Exhaustion.\n• Explainability: Localized SHAP-style waterfall driver decomposition showing exact root-cause contributions."),
-        ("Tier 4: Enterprise REST API & Government Web Dashboard", "• FastAPI Backend: Asynchronous microservices (<5ms inference latency) with OpenAPI docs.\n• Responsive Dashboard: Tailwind CSS & Chart.js for executive analytics, project drilldown & What-If simulator.\n• LLM Project Intelligence Copilot: RAG assistant generating ministerial briefs & answering portfolio queries.")
-    ]
-
-    for tname, tdesc in tiers:
-        pt = tf_a.add_paragraph()
-        pt.text = f"▶ {tname}"
-        pt.font.name = "Arial"
-        pt.font.size = Pt(10)
-        pt.font.bold = True
-        pt.font.color.rgb = SAFFRON
-        pt.space_before = Pt(4)
-
-        for l in tdesc.split("\n"):
-            pd = tf_a.add_paragraph()
-            pd.text = l
-            pd.font.name = "Calibri"
-            pd.font.size = Pt(9)
-            pd.font.color.rgb = DARK_TEXT
+    # Left: Visual System Architecture Diagram Image
+    arch_img_path = os.path.join(assets_dir, "architecture_diagram.png")
+    if os.path.exists(arch_img_path):
+        s3.shapes.add_picture(arch_img_path, Inches(0.6), Inches(1.25), width=Inches(7.7), height=Inches(5.55))
+    else:
+        # Fallback container
+        arch_box = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(1.25), Inches(7.7), Inches(5.55))
+        arch_box.fill.solid()
+        arch_box.fill.fore_color.rgb = WHITE
+        arch_box.line.color.rgb = NAVY
 
     # Right Box: Tech Stack with Badges
-    tech_box = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.4), Inches(1.3), Inches(4.3), Inches(5.55))
+    tech_box = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.45), Inches(1.25), Inches(4.25), Inches(5.55))
     tech_box.fill.solid()
     tech_box.fill.fore_color.rgb = LIGHT_BG
     tech_box.line.color.rgb = BORDER_COLOR
@@ -262,9 +234,9 @@ def populate_sih_template(template_path: str, output_path: str, team_name="Team 
     tf_tb = tech_box.text_frame
     tf_tb.word_wrap = True
     p_tb0 = tf_tb.paragraphs[0]
-    p_tb0.text = "TECHNOLOGY STACK & OPEN-SOURCE TOOLS"
+    p_tb0.text = "TECHNOLOGY STACK & OPEN TOOLS"
     p_tb0.font.name = "Arial"
-    p_tb0.font.size = Pt(12)
+    p_tb0.font.size = Pt(11.5)
     p_tb0.font.bold = True
     p_tb0.font.color.rgb = NAVY
 
@@ -610,5 +582,5 @@ def populate_sih_template(template_path: str, output_path: str, team_name="Team 
 
 if __name__ == "__main__":
     tmpl = r"C:\Users\Saba\.gemini\antigravity\brain\30f02a80-f446-4a07-9221-1a31dc33cb23\.user_uploaded\media_1790854900794.pptx"
-    out = r"C:\Users\Saba\.gemini\antigravity\scratch\paimana-ai\sih_submission\SIH_2026_Final_Submission_Saba2704.pptx"
+    out = r"C:\Users\Saba\.gemini\antigravity\scratch\paimana-ai\sih_submission\SIH_2026_Final_Submission_Visual_Architecture.pptx"
     populate_sih_template(tmpl, out, team_name="Team InfraVision", github_id="Saba2704")
