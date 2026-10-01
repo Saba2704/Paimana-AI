@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAIMANA-AI | National Infrastructure Predictive Monitoring & Early Warning Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            govNavy: '#0F1E36',
+            govNavyLight: '#1E293B',
+            govAccent: '#E06D14',
+            govGreen: '#059669',
+            govRed: '#DC2626',
+            govAmber: '#D97706',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    .tab-active { border-bottom: 3px solid #E06D14; color: #E06D14; font-weight: 600; }
+    .badge-red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #F87171; }
+    .badge-amber { background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .badge-green { background-color: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-govNavy text-white shadow-md border-b-4 border-govAccent">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-govAccent flex items-center justify-center font-bold text-xl shadow">
+          <i class="fa-solid fa-chart-line text-white"></i>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wider text-slate-300 font-semibold flex items-center gap-2">
+            <span>Ministry of Statistics & Programme Implementation (MoSPI)</span>
+            <span class="bg-blue-900 text-blue-200 text-[10px] px-1.5 py-0.5 rounded">IPMD | DIID</span>
+          </div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            PAIMANA-AI
+            <span class="text-xs font-normal bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded border border-orange-500/30">
+              April 2026 Edition
+            </span>
+          </h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <div class="hidden md:flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs text-slate-200 font-medium">Predictive Engine: Online</span>
+        </div>
+        <button onclick="toggleCopilot()" class="bg-govAccent hover:bg-orange-600 transition text-white px-3.5 py-1.5 rounded-lg font-medium text-xs flex items-center gap-2 shadow">
+          <i class="fa-solid fa-brain"></i> AI Project Copilot
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MACRO KPI STATS BAR -->
+  <section class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
+        <div class="p-2 border-r border-slate-100 last:border-none">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Monitored Projects</div>
+          <div id="kpi-projects" class="text-lg font-bold text-slate-900">1,981</div>
+          <div class="text-[10px] text-slate-400">Costing ≥ ₹150 Cr</div>
+        </div>
+        <div class="p-2 border-r border-slate-100 last:border-none">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Sanctioned Outlay</div>
+          <div id="kpi-orig-cost" class="text-lg font-bold text-slate-900">₹37.13 L Cr</div>
+          <div class="text-[10px] text-slate-400">17 Ministries</div>
+        </div>
+        <div class="p-2 border-r border-slate-100 last:border-none">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Revised Outlay</div>
+          <div id="kpi-rev-cost" class="text-lg font-bold text-slate-900">₹42.78 L Cr</div>
+          <div id="kpi-overrun-pct" class="text-[10px] text-red-600 font-semibold">+15.2% Escalation</div>
+        </div>
+        <div class="p-2 border-r border-slate-100 last:border-none">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Cumulative Capex</div>
+          <div id="kpi-expenditure" class="text-lg font-bold text-slate-900">₹20.36 L Cr</div>
+          <div class="text-[10px] text-slate-400">47.6% Financial Spend</div>
+        </div>
+        <div class="p-2 border-r border-slate-100 last:border-none">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Delayed Projects</div>
+          <div id="kpi-delayed-count" class="text-lg font-bold text-amber-600">814</div>
+          <div id="kpi-avg-delay" class="text-[10px] text-slate-500">Avg 32.4 Mos</div>
+        </div>
+        <div class="p-2">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Critical RED Risk</div>
+          <div id="kpi-red-count" class="text-lg font-bold text-red-600">328</div>
+          <div class="text-[10px] text-red-500 font-medium">Immediate Intervention</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-6 overflow-x-auto text-sm">
+      <button onclick="switchTab('overview')" id="tab-btn-overview" class="py-3 px-2 tab-active flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-gauge-high"></i> Executive Overview
+      </button>
+      <button onclick="switchTab('explorer')" id="tab-btn-explorer" class="py-3 px-2 text-slate-500 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-list-check"></i> Project Explorer
+      </button>
+      <button onclick="switchTab('alerts')" id="tab-btn-alerts" class="py-3 px-2 text-slate-500 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-bell text-red-500"></i> Early Warning Desk
+      </button>
+      <button onclick="switchTab('simulator')" id="tab-btn-simulator" class="py-3 px-2 text-slate-500 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-sliders"></i> Scenario Simulator
+      </button>
+      <button onclick="switchTab('benchmarks')" id="tab-btn-benchmarks" class="py-3 px-2 text-slate-500 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-scale-balanced"></i> AI vs Statistical Arena
+      </button>
+      <button onclick="switchTab('cuf')" id="tab-btn-cuf" class="py-3 px-2 text-slate-500 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-file-invoice"></i> CUF Reform Lab
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- 1. TAB: EXECUTIVE OVERVIEW -->
+    <div id="tab-content-overview" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- RAG Risk Donut Chart -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">Composite Risk Index (RAG)</h3>
+            <span class="text-xs text-slate-400">1,981 Projects</span>
+          </div>
+          <div class="h-64 flex items-center justify-center">
+            <canvas id="ragDonutChart"></canvas>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100 text-center text-xs">
+            <div class="p-1 rounded bg-red-50 text-red-700 font-semibold" id="rag-red-text">RED: --</div>
+            <div class="p-1 rounded bg-amber-50 text-amber-700 font-semibold" id="rag-amber-text">AMBER: --</div>
+            <div class="p-1 rounded bg-emerald-50 text-emerald-700 font-semibold" id="rag-green-text">GREEN: --</div>
+          </div>
+        </div>
+
+        <!-- Top Sectors Capex & Escalation Chart -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">Sectoral Capital Allocation & Escalation</h3>
+            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">₹ Lakh Crore</span>
+          </div>
+          <div class="h-64">
+            <canvas id="sectorBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ministry Performance Leaderboard -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Central Ministry Implementation Performance Index</h3>
+            <p class="text-xs text-slate-500">Benchmarked across 17 Central Ministries tracking budget discipline & schedule velocity</p>
+          </div>
+          <button onclick="switchTab('benchmarks')" class="text-xs font-semibold text-govAccent hover:underline">
+            View Deep Analytics &rarr;
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase border-y border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3">Ministry / Department</th>
+                <th class="py-2.5 px-3 text-center">Projects</th>
+                <th class="py-2.5 px-3 text-right">Avg Cost Overrun</th>
+                <th class="py-2.5 px-3 text-right">Avg Delay</th>
+                <th class="py-2.5 px-3 text-center">Delayed Ratio</th>
+                <th class="py-2.5 px-3 text-center">Efficiency Score</th>
+              </tr>
+            </thead>
+            <tbody id="ministry-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. TAB: PROJECT EXPLORER -->
+    <div id="tab-content-explorer" class="hidden space-y-4">
+      <!-- Filters Card -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+        <div class="flex flex-wrap gap-2 flex-grow">
+          <div class="relative w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+            <input type="text" id="filter-search" oninput="debounceSearch()" placeholder="Search project name, ID, agency..."
+                   class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-govAccent focus:outline-none" />
+          </div>
+          <select id="filter-ministry" onchange="fetchProjects(1)" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-govAccent">
+            <option value="All">All Ministries (17)</option>
+          </select>
+          <select id="filter-sector" onchange="fetchProjects(1)" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-govAccent">
+            <option value="All">All Sectors (22)</option>
+          </select>
+          <select id="filter-rag" onchange="fetchProjects(1)" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-govAccent">
+            <option value="All">All Risk Statuses</option>
+            <option value="RED">RED (Critical)</option>
+            <option value="AMBER">AMBER (Medium)</option>
+            <option value="GREEN">GREEN (Low)</option>
+          </select>
+        </div>
+        <div class="text-xs text-slate-500" id="projects-total-count">Showing -- projects</div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-3">Project ID</th>
+                <th class="py-3 px-3">Project Name & Agency</th>
+                <th class="py-3 px-3">Sector</th>
+                <th class="py-3 px-3 text-right">Sanctioned Cost</th>
+                <th class="py-3 px-3 text-right">Revised Cost</th>
+                <th class="py-3 px-3 text-center">Progress (Phy/Fin)</th>
+                <th class="py-3 px-3 text-center">Delay</th>
+                <th class="py-3 px-3 text-center">Risk Index</th>
+                <th class="py-3 px-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+          <button id="btn-prev-page" onclick="changePage(-1)" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50">Previous</button>
+          <span id="page-indicator" class="text-slate-600">Page 1 of --</span>
+          <button id="btn-next-page" onclick="changePage(1)" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. TAB: EARLY WARNING ALERT DESK -->
+    <div id="tab-content-alerts" class="hidden space-y-4">
+      <div class="bg-gradient-to-r from-red-900 to-slate-900 text-white p-5 rounded-xl shadow">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-red-400"></i> Early Warning Alert Desk (EWS)
+            </h2>
+            <p class="text-xs text-slate-300 mt-1">Autonomous rule engine detecting inflection points, ghost progress, and milestone cascade collapses.</p>
+          </div>
+          <div class="flex gap-2">
+            <span class="bg-red-500/30 border border-red-400/50 text-red-200 px-3 py-1 rounded text-xs font-semibold" id="alerts-critical-pill">-- Critical</span>
+            <span class="bg-amber-500/30 border border-amber-400/50 text-amber-200 px-3 py-1 rounded text-xs font-semibold" id="alerts-high-pill">-- High</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="alerts-feed-container" class="space-y-3">
+        <!-- Dynamically rendered alert cards -->
+      </div>
+    </div>
+
+    <!-- 4. TAB: SCENARIO SIMULATOR -->
+    <div id="tab-content-simulator" class="hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <h3 class="font-bold text-slate-800 text-base mb-1">What-If Intervention & Macro Stress Simulator</h3>
+        <p class="text-xs text-slate-500 mb-4">Simulate how policy fast-tracking, statutory clearance delays, or raw material inflation impacts project cost and completion date.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Controls -->
+          <div class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Select Project to Simulate</label>
+              <select id="sim-project-select" onchange="runSimulation()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white">
+                <!-- Dynamically filled with top critical projects -->
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                <span>Statutory Clearance Delay:</span>
+                <span id="slider-clearance-val" class="text-govAccent font-bold">0 Months</span>
+              </div>
+              <input type="range" id="sim-slider-clearance" min="-6" max="24" value="0" step="1" oninput="updateSimSliders(); runSimulation();"
+                     class="w-full accent-govAccent cursor-pointer" />
+              <div class="flex justify-between text-[10px] text-slate-400">
+                <span>-6 mo (Fast Track)</span>
+                <span>Baseline (0)</span>
+                <span>+24 mo (Stalled)</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                <span>Steel / Cement Macro Inflation Shock:</span>
+                <span id="slider-inflation-val" class="text-govAccent font-bold">0%</span>
+              </div>
+              <input type="range" id="sim-slider-inflation" min="-10" max="30" value="0" step="5" oninput="updateSimSliders(); runSimulation();"
+                     class="w-full accent-govAccent cursor-pointer" />
+              <div class="flex justify-between text-[10px] text-slate-400">
+                <span>-10% (Deflation)</span>
+                <span>0% (Stable)</span>
+                <span>+30% (Spike)</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                <span>Contractor Execution Efficiency:</span>
+                <span id="slider-contractor-val" class="text-govAccent font-bold">0%</span>
+              </div>
+              <input type="range" id="sim-slider-contractor" min="-30" max="30" value="0" step="5" oninput="updateSimSliders(); runSimulation();"
+                     class="w-full accent-govAccent cursor-pointer" />
+              <div class="flex justify-between text-[10px] text-slate-400">
+                <span>-30% (Under-mobilized)</span>
+                <span>0% (Status Quo)</span>
+                <span>+30% (Double Shift)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simulation Output Card -->
+          <div class="bg-slate-900 text-white p-5 rounded-lg border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Simulated Outcome Comparison</div>
+              <div class="grid grid-cols-2 gap-3 text-xs mb-4">
+                <div class="bg-slate-800 p-2.5 rounded border border-slate-700">
+                  <div class="text-slate-400 text-[10px]">Baseline Revised Cost</div>
+                  <div id="sim-base-cost" class="text-sm font-bold text-white">₹ -- Cr</div>
+                  <div id="sim-base-overrun" class="text-[10px] text-slate-300">--% Overrun</div>
+                </div>
+                <div class="bg-slate-800 p-2.5 rounded border border-slate-700">
+                  <div class="text-slate-400 text-[10px]">Simulated Project Cost</div>
+                  <div id="sim-proj-cost" class="text-sm font-bold text-orange-400">₹ -- Cr</div>
+                  <div id="sim-proj-overrun" class="text-[10px] text-orange-300">--% Overrun</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 text-xs mb-4">
+                <div class="bg-slate-800 p-2.5 rounded border border-slate-700">
+                  <div class="text-slate-400 text-[10px]">Anticipated DOC</div>
+                  <div id="sim-proj-doc" class="text-sm font-bold text-emerald-400">--</div>
+                  <div id="sim-shift-mo" class="text-[10px] text-slate-300">Shift: --</div>
+                </div>
+                <div class="bg-slate-800 p-2.5 rounded border border-slate-700">
+                  <div class="text-slate-400 text-[10px]">Simulated Risk (CRI)</div>
+                  <div id="sim-proj-cri" class="text-sm font-bold text-red-400">-- / 100</div>
+                  <div id="sim-proj-rag" class="text-[10px] font-semibold text-slate-300">--</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-800/90 rounded border border-slate-700 text-xs">
+              <span class="text-slate-400 font-semibold">Policy Takeaway:</span>
+              <p id="sim-policy-text" class="text-slate-200 mt-0.5">Adjust sliders to calculate capex sensitivity.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. TAB: AI VS STATISTICAL ARENA (Dimension b) -->
+    <div id="tab-content-benchmarks" class="hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Technical Dimension (b): Classical Statistics vs. AI/ML Benchmark</h3>
+            <p class="text-xs text-slate-500">Rigorous empirical comparison of traditional econometric models vs modern tree ensembles.</p>
+          </div>
+          <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded font-semibold">
+            Superiority Proven
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- Cost Regression Benchmark Table -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden">
+            <div class="bg-slate-50 p-2.5 border-b border-slate-200 font-semibold text-xs text-slate-700">
+              Task 1: Cost Overrun Prediction (Regression)
+            </div>
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 text-[11px]">
+                <tr>
+                  <th class="py-2 px-3">Model Architecture</th>
+                  <th class="py-2 px-3 text-right">RMSE (%)</th>
+                  <th class="py-2 px-3 text-right">MAE (%)</th>
+                  <th class="py-2 px-3 text-right">R² Score</th>
+                </tr>
+              </thead>
+              <tbody id="benchmark-cost-table" class="divide-y divide-slate-100">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Severe Risk Classification Table -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden">
+            <div class="bg-slate-50 p-2.5 border-b border-slate-200 font-semibold text-xs text-slate-700">
+              Task 2: Severe Overrun Risk Identification (Classification)
+            </div>
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 text-[11px]">
+                <tr>
+                  <th class="py-2 px-3">Model Architecture</th>
+                  <th class="py-2 px-3 text-right">Accuracy</th>
+                  <th class="py-2 px-3 text-right">ROC-AUC</th>
+                  <th class="py-2 px-3 text-right">F1-Score</th>
+                </tr>
+              </thead>
+              <tbody id="benchmark-risk-table" class="divide-y divide-slate-100">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Key Synthesis Card -->
+        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg text-xs text-slate-800" id="benchmark-findings-card">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. TAB: CUF REFORM LAB (Dimension c) -->
+    <div id="tab-content-cuf" class="hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Technical Dimension (c): Common Upload Form (CUF) Attribution Study</h3>
+            <p class="text-xs text-slate-500">Evaluating predictive performance of current CUF fields vis-à-vis augmented external indicators.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div class="text-xs font-semibold text-slate-500 uppercase">Regime A: Standard CUF</div>
+            <div id="cuf-r2-val" class="text-xl font-bold text-slate-800 mt-1">--</div>
+            <p class="text-[11px] text-slate-500 mt-1">Cost variance explained strictly with current PAIMANA fields.</p>
+          </div>
+          <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+            <div class="text-xs font-semibold text-orange-700 uppercase">Regime B: Enhanced CUF</div>
+            <div id="enh-r2-val" class="text-xl font-bold text-orange-800 mt-1">--</div>
+            <p class="text-[11px] text-orange-700 mt-1">With Contractor score, Terrain index, Inflation & Nodes.</p>
+          </div>
+          <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+            <div class="text-xs font-semibold text-emerald-700 uppercase">Predictive Uplift (&Delta;)</div>
+            <div id="delta-r2-val" class="text-xl font-bold text-emerald-800 mt-1">--</div>
+            <p class="text-[11px] text-emerald-700 mt-1">Significant boost in predictive accuracy and ROC-AUC.</p>
+          </div>
+        </div>
+
+        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wide mb-3">
+          Policy Recommendations for MoSPI Data Informatics & Innovation Division (DIID):
+        </h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-slate-200 rounded-lg">
+            <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px]">
+              <tr>
+                <th class="py-2.5 px-3">Priority</th>
+                <th class="py-2.5 px-3">Recommended Field Addition</th>
+                <th class="py-2.5 px-3">Data Type</th>
+                <th class="py-2.5 px-3">Strategic Justification</th>
+              </tr>
+            </thead>
+            <tbody id="cuf-recommendations-table" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- PROJECT DEEP-DIVE MODAL -->
+  <div id="project-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="bg-govNavy text-white px-6 py-4 flex justify-between items-center">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modal-project-id" class="text-xs font-mono bg-slate-800 px-2 py-0.5 rounded text-orange-400">ID</span>
+            <span id="modal-rag-badge" class="text-xs px-2 py-0.5 rounded font-semibold uppercase">RAG</span>
+          </div>
+          <h2 id="modal-project-name" class="text-base font-bold mt-1">Project Name</h2>
+          <p id="modal-project-meta" class="text-xs text-slate-300">Ministry | Agency | State</p>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 scrollbar-thin text-xs">
+        <!-- Financial & Timeline Summary -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 text-[10px]">Original Cost</span>
+            <div id="modal-orig-cost" class="font-bold text-slate-800 text-sm">₹ -- Cr</div>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 text-[10px]">Revised Cost</span>
+            <div id="modal-rev-cost" class="font-bold text-slate-800 text-sm">₹ -- Cr</div>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 text-[10px]">Cumulative Spend</span>
+            <div id="modal-exp" class="font-bold text-slate-800 text-sm">₹ -- Cr</div>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 text-[10px]">Schedule Slip</span>
+            <div id="modal-delay" class="font-bold text-slate-800 text-sm">-- Mos</div>
+          </div>
+        </div>
+
+        <!-- Progress Bars -->
+        <div class="space-y-2">
+          <div>
+            <div class="flex justify-between text-[11px] font-semibold text-slate-600 mb-1">
+              <span>Physical Ground Progress</span>
+              <span id="modal-phy-text">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="modal-phy-bar" class="bg-emerald-500 h-full rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[11px] font-semibold text-slate-600 mb-1">
+              <span>Financial Expenditure Progress</span>
+              <span id="modal-fin-text">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="modal-fin-bar" class="bg-blue-600 h-full rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Index Decomposition -->
+        <div>
+          <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wide mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-shield-halved text-govAccent"></i> Composite Risk Index (CRI: <span id="modal-cri-val">--</span>/100)
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center" id="modal-subindices-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Explainable AI Drivers -->
+        <div>
+          <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wide mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-network-wired text-govAccent"></i> Explainable AI Drivers (Root-Cause Breakdown)
+          </h4>
+          <div id="modal-drivers-list" class="space-y-1.5">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Peer Projects -->
+        <div>
+          <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wide mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-users-viewfinder text-govAccent"></i> Peer Project Benchmark Cohort
+          </h4>
+          <div id="modal-peer-cohort" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center">
+        <button onclick="requestCopilotBrief()" class="bg-govAccent text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-orange-600 transition flex items-center gap-2">
+          <i class="fa-solid fa-file-lines"></i> Generate Cabinet Brief
+        </button>
+        <button onclick="closeModal()" class="px-4 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-300">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI PROJECT COPILOT DRAWER -->
+  <aside id="copilot-drawer" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-slate-300 z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Copilot Header -->
+    <div class="bg-govNavy text-white p-4 flex justify-between items-center border-b-2 border-govAccent">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-govAccent flex items-center justify-center font-bold text-sm">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm">Project Intelligence Copilot</h3>
+          <p class="text-[10px] text-slate-300">MoSPI Autonomous Decision Support</p>
+        </div>
+      </div>
+      <button onclick="toggleCopilot()" class="text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Quick Prompts -->
+    <div class="p-3 bg-slate-50 border-b border-slate-200">
+      <div class="text-[10px] font-semibold text-slate-500 uppercase mb-1.5">Quick Prompts</div>
+      <div class="flex flex-wrap gap-1.5">
+        <button onclick="sendQuickPrompt('Analyze Railway projects')" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-100">
+          🚆 Railway Delays
+        </button>
+        <button onclick="sendQuickPrompt('Top critical projects')" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-100">
+          🔴 Top Critical Red
+        </button>
+        <button onclick="sendQuickPrompt('CUF reform recommendations')" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-100">
+          📋 CUF Reform
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Feed -->
+    <div id="copilot-chat-feed" class="flex-grow p-4 overflow-y-auto space-y-3 text-xs scrollbar-thin">
+      <div class="bg-slate-100 p-3 rounded-lg text-slate-700">
+        👋 <strong>Welcome, Project Administrator.</strong> I am your AI decision-support assistant. Ask me to synthesize portfolio status, identify delay bottlenecks, or generate cabinet executive briefs.
+      </div>
+    </div>
+
+    <!-- Chat Input -->
+    <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+      <input type="text" id="copilot-input" onkeydown="handleCopilotKey(event)" placeholder="Ask about any project or sector..."
+             class="flex-grow text-xs border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-govAccent" />
+      <button onclick="sendCopilotMessage()" class="bg-govAccent text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-orange-600 transition">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    let currentProjectModalId = null;
+    let currentPage = 1;
+    let totalPages = 1;
+    let searchDebounceTimer = null;
+    let sectorChartInstance = null;
+    let ragDonutInstance = null;
+
+    // Tab Switching
+    function switchTab(tabId) {
+      const tabs = ['overview', 'explorer', 'alerts', 'simulator', 'benchmarks', 'cuf'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const content = document.getElementById(`tab-content-${t}`);
+        if (t === tabId) {
+          btn.className = "py-3 px-2 tab-active flex items-center gap-2 whitespace-nowrap";
+          content.classList.remove('hidden');
+        } else {
+          btn.className = "py-3 px-2 text-slate-500 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap";
+          content.classList.add('hidden');
+        }
+      });
+      if (tabId === 'explorer' && document.getElementById('projects-table-body').children.length === 0) {
+        fetchProjects(1);
+      }
+    }
+
+    // Toggle Copilot Drawer
+    function toggleCopilot() {
+      const drawer = document.getElementById('copilot-drawer');
+      drawer.classList.toggle('translate-x-full');
+    }
+
+    // Initial Load
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadKPIs();
+      await loadMinistriesAndSectors();
+      await loadSectorBenchmarks();
+      await loadAIvsStatsBenchmarks();
+      await loadCUFStudy();
+      await loadAlerts();
+      await loadSimulationProjects();
+    });
+
+    // Load KPIs
+    async function loadKPIs() {
+      try {
+        const res = await fetch('/api/kpis');
+        const data = await res.json();
+        document.getElementById('kpi-projects').innerText = data.total_monitored_projects.toLocaleString();
+        document.getElementById('kpi-orig-cost').innerText = `₹${data.aggregate_original_cost_lakh_cr.toFixed(2)} L Cr`;
+        document.getElementById('kpi-rev-cost').innerText = `₹${data.aggregate_revised_cost_lakh_cr.toFixed(2)} L Cr`;
+        document.getElementById('kpi-overrun-pct').innerText = `+${data.portfolio_avg_cost_overrun_pct}% Escalation`;
+        document.getElementById('kpi-expenditure').innerText = `₹${data.cumulative_expenditure_lakh_cr.toFixed(2)} L Cr`;
+        document.getElementById('kpi-delayed-count').innerText = data.delayed_projects_count.toLocaleString();
+        document.getElementById('kpi-avg-delay').innerText = `Avg ${data.portfolio_avg_delay_months} Mos`;
+        document.getElementById('kpi-red-count').innerText = data.rag_breakdown.RED.toLocaleString();
+
+        document.getElementById('rag-red-text').innerText = `RED: ${data.rag_breakdown.RED}`;
+        document.getElementById('rag-amber-text').innerText = `AMBER: ${data.rag_breakdown.AMBER}`;
+        document.getElementById('rag-green-text').innerText = `GREEN: ${data.rag_breakdown.GREEN}`;
+
+        renderRAGDonut(data.rag_breakdown);
+      } catch (err) {
+        console.error("Error loading KPIs:", err);
+      }
+    }
+
+    function renderRAGDonut(rag) {
+      const ctx = document.getElementById('ragDonutChart').getContext('2d');
+      if (ragDonutInstance) ragDonutInstance.destroy();
+      ragDonutInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Critical (RED)', 'Watch (AMBER)', 'Normal (GREEN)'],
+          datasets: [{
+            data: [rag.RED, rag.AMBER, rag.GREEN],
+            backgroundColor: ['#DC2626', '#D97706', '#059669'],
+            borderWidth: 2,
+            borderColor: '#FFFFFF'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+
+    // Load Sector Benchmarks and Bar Chart
+    async function loadSectorBenchmarks() {
+      try {
+        const res = await fetch('/api/benchmarks/sectors');
+        const sectors = await res.json();
+        const topSectors = sectors.slice(0, 6);
+
+        const labels = topSectors.map(s => s.sector.length > 15 ? s.sector.slice(0, 15) + '...' : s.sector);
+        const origCosts = topSectors.map(s => (s.total_original_cost_cr / 100000).toFixed(2));
+        const revCosts = topSectors.map(s => (s.total_revised_cost_cr / 100000).toFixed(2));
+
+        const ctx = document.getElementById('sectorBarChart').getContext('2d');
+        if (sectorChartInstance) sectorChartInstance.destroy();
+        sectorChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'Sanctioned Outlay', data: origCosts, backgroundColor: '#94A3B8' },
+              { label: 'Revised Outlay', data: revCosts, backgroundColor: '#0F1E36' }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10 } } } },
+            scales: {
+              y: { title: { display: true, text: '₹ Lakh Crore', font: { size: 10 } } },
+              x: { ticks: { font: { size: 9 } } }
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Error loading sector benchmarks:", err);
+      }
+    }
+
+    // Load Ministries Leaderboard
+    async function loadMinistriesAndSectors() {
+      try {
+        const [minRes, secRes] = await Promise.all([
+          fetch('/api/benchmarks/ministries'),
+          fetch('/api/benchmarks/sectors')
+        ]);
+        const ministries = await minRes.json();
+        const sectors = await secRes.json();
+
+        // Populate Table
+        const tbody = document.getElementById('ministry-table-body');
+        tbody.innerHTML = '';
+        ministries.forEach(m => {
+          const row = document.createElement('tr');
+          row.className = "hover:bg-slate-50 transition";
+          row.innerHTML = `
+            <td class="py-2 px-3 font-semibold text-slate-800">${m.ministry}</td>
+            <td class="py-2 px-3 text-center text-slate-600">${m.project_count}</td>
+            <td class="py-2 px-3 text-right font-medium ${m.avg_cost_overrun_pct > 15 ? 'text-red-600' : 'text-slate-700'}">+${m.avg_cost_overrun_pct}%</td>
+            <td class="py-2 px-3 text-right text-slate-600">${m.avg_delay_months} Mos</td>
+            <td class="py-2 px-3 text-center">${m.delayed_projects_pct}%</td>
+            <td class="py-2 px-3 text-center">
+              <span class="px-2 py-0.5 rounded font-bold ${m.efficiency_score >= 70 ? 'bg-emerald-100 text-emerald-800' : (m.efficiency_score >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')}">
+                ${m.efficiency_score}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        // Populate Select Filters
+        const minSel = document.getElementById('filter-ministry');
+        ministries.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.ministry;
+          opt.innerText = m.ministry;
+          minSel.appendChild(opt);
+        });
+
+        const secSel = document.getElementById('filter-sector');
+        sectors.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.sector;
+          opt.innerText = s.sector;
+          secSel.appendChild(opt);
+        });
+
+      } catch (err) {
+        console.error("Error loading ministries/sectors:", err);
+      }
+    }
+
+    // Projects Explorer
+    function debounceSearch() {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        fetchProjects(1);
+      }, 300);
+    }
+
+    function changePage(delta) {
+      const target = currentPage + delta;
+      if (target >= 1 && target <= totalPages) {
+        fetchProjects(target);
+      }
+    }
+
+    async function fetchProjects(page = 1) {
+      currentPage = page;
+      const search = document.getElementById('filter-search').value;
+      const ministry = document.getElementById('filter-ministry').value;
+      const sector = document.getElementById('filter-sector').value;
+      const rag = document.getElementById('filter-rag').value;
+
+      let url = `/api/projects?page=${page}&page_size=12`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (ministry) url += `&ministry=${encodeURIComponent(ministry)}`;
+      if (sector) url += `&sector=${encodeURIComponent(sector)}`;
+      if (rag) url += `&rag_status=${encodeURIComponent(rag)}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        totalPages = data.total_pages;
+
+        document.getElementById('projects-total-count').innerText = `Showing ${data.projects.length} of ${data.total_records.toLocaleString()} projects`;
+        document.getElementById('page-indicator').innerText = `Page ${data.page} of ${Math.max(1, data.total_pages)}`;
+        document.getElementById('btn-prev-page').disabled = data.page <= 1;
+        document.getElementById('btn-next-page').disabled = data.page >= data.total_pages;
+
+        const tbody = document.getElementById('projects-table-body');
+        tbody.innerHTML = '';
+        data.projects.forEach(p => {
+          const ragClass = p.rag_status === 'RED' ? 'badge-red' : (p.rag_status === 'AMBER' ? 'badge-amber' : 'badge-green');
+          const row = document.createElement('tr');
+          row.className = "hover:bg-slate-50 transition cursor-pointer";
+          row.onclick = () => openProjectModal(p.project_id);
+          row.innerHTML = `
+            <td class="py-2.5 px-3 font-mono font-bold text-slate-800">${p.project_id}</td>
+            <td class="py-2.5 px-3">
+              <div class="font-semibold text-slate-900">${p.project_name}</div>
+              <div class="text-[10px] text-slate-400">${p.implementing_agency} | ${p.state}</div>
+            </td>
+            <td class="py-2.5 px-3 text-slate-600">${p.sector}</td>
+            <td class="py-2.5 px-3 text-right font-medium text-slate-700">₹${p.original_cost_cr.toLocaleString()} Cr</td>
+            <td class="py-2.5 px-3 text-right font-bold ${p.cost_overrun_pct > 15 ? 'text-red-600' : 'text-slate-800'}">₹${p.revised_cost_cr.toLocaleString()} Cr</td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="font-semibold text-emerald-700">${p.physical_progress_pct}%</span> /
+              <span class="text-blue-700">${p.financial_progress_pct}%</span>
+            </td>
+            <td class="py-2.5 px-3 text-center font-medium ${p.months_delayed > 12 ? 'text-red-600' : 'text-slate-600'}">
+              ${p.months_delayed > 0 ? `+${p.months_delayed} mo` : 'On Time'}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="text-[10px] px-2 py-0.5 rounded font-bold ${ragClass}">${p.rag_status} (${p.composite_risk_index})</span>
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="event.stopPropagation(); openProjectModal('${p.project_id}')" class="text-govAccent hover:underline font-semibold">
+                Drilldown
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error fetching projects:", err);
+      }
+    }
+
+    // Modal Details
+    async function openProjectModal(projectId) {
+      currentProjectModalId = projectId;
+      try {
+        const res = await fetch(`/api/projects/${projectId}`);
+        const data = await res.json();
+        const p = data.project;
+        const cri = data.risk_profile;
+        const drivers = data.driver_analysis;
+        const peers = data.peer_cohort;
+
+        document.getElementById('modal-project-id').innerText = p.project_id;
+        document.getElementById('modal-project-name').innerText = p.project_name;
+        document.getElementById('modal-project-meta').innerText = `${p.ministry} | Agency: ${p.implementing_agency} | State: ${p.state} | DOC: ${p.revised_doc}`;
+
+        const badge = document.getElementById('modal-rag-badge');
+        badge.innerText = p.rag_status;
+        badge.className = `text-xs px-2 py-0.5 rounded font-semibold uppercase ${p.rag_status === 'RED' ? 'bg-red-500 text-white' : (p.rag_status === 'AMBER' ? 'bg-amber-500 text-white' : 'bg-emerald-600 text-white')}`;
+
+        document.getElementById('modal-orig-cost').innerText = `₹${p.original_cost_cr.toLocaleString()} Cr`;
+        document.getElementById('modal-rev-cost').innerText = `₹${p.revised_cost_cr.toLocaleString()} Cr (+${p.cost_overrun_pct}%)`;
+        document.getElementById('modal-exp').innerText = `₹${p.cumulative_exp_cr.toLocaleString()} Cr`;
+        document.getElementById('modal-delay').innerText = `${p.months_delayed} Mos`;
+
+        // Progress
+        document.getElementById('modal-phy-text').innerText = `${p.physical_progress_pct}% (${p.achieved_milestones}/${p.total_milestones} Milestones)`;
+        document.getElementById('modal-phy-bar').style.width = `${Math.min(100, p.physical_progress_pct)}%`;
+        document.getElementById('modal-fin-text').innerText = `${p.financial_progress_pct}%`;
+        document.getElementById('modal-fin-bar').style.width = `${Math.min(100, p.financial_progress_pct)}%`;
+
+        // CRI
+        document.getElementById('modal-cri-val').innerText = cri.composite_risk_index;
+        const subGrid = document.getElementById('modal-subindices-grid');
+        subGrid.innerHTML = `
+          <div class="bg-slate-50 p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400">Financial Risk</span>
+            <div class="font-bold text-slate-800 text-xs">${cri.sub_indices.financial_risk}/100</div>
+          </div>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400">Milestone Velocity</span>
+            <div class="font-bold text-slate-800 text-xs">${cri.sub_indices.milestone_velocity_risk}/100</div>
+          </div>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400">Clearance Friction</span>
+            <div class="font-bold text-slate-800 text-xs">${cri.sub_indices.bottleneck_severity_risk}/100</div>
+          </div>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400">Execution Capacity</span>
+            <div class="font-bold text-slate-800 text-xs">${cri.sub_indices.execution_capacity_risk}/100</div>
+          </div>
+        `;
+
+        // Drivers
+        const driversList = document.getElementById('modal-drivers-list');
+        driversList.innerHTML = '';
+        drivers.primary_drivers.forEach(d => {
+          const item = document.createElement('div');
+          const isNegative = d.impact_pct > 0;
+          item.className = `p-2 rounded border flex justify-between items-center ${isNegative ? 'bg-red-50/50 border-red-200' : 'bg-emerald-50/50 border-emerald-200'}`;
+          item.innerHTML = `
+            <div>
+              <div class="font-semibold text-slate-800">${d.driver}</div>
+              <div class="text-[10px] text-slate-500">${d.explanation}</div>
+            </div>
+            <span class="font-bold text-xs ${isNegative ? 'text-red-600' : 'text-emerald-600'}">
+              ${isNegative ? '+' : ''}${d.impact_pct}%
+            </span>
+          `;
+          driversList.appendChild(item);
+        });
+
+        // Peer Cohort
+        const peerContainer = document.getElementById('modal-peer-cohort');
+        peerContainer.innerHTML = '';
+        peers.forEach(peer => {
+          const pdiv = document.createElement('div');
+          pdiv.className = "p-2 bg-slate-50 rounded border border-slate-200";
+          pdiv.innerHTML = `
+            <div class="font-semibold text-slate-800">${peer.project_name}</div>
+            <div class="text-[10px] text-slate-500">Sanction: ₹${peer.original_cost_cr.toLocaleString()} Cr | Overrun: +${peer.cost_overrun_pct}% | Delay: ${peer.months_delayed} mo</div>
+          `;
+          peerContainer.appendChild(pdiv);
+        });
+
+        document.getElementById('project-modal').classList.remove('hidden');
+      } catch (err) {
+        console.error("Error loading project detail:", err);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('project-modal').classList.add('hidden');
+    }
+
+    // Load Alerts Desk
+    async function loadAlerts() {
+      try {
+        const res = await fetch('/api/alerts');
+        const data = await res.json();
+        document.getElementById('alerts-critical-pill').innerText = `${data.critical_count} Critical`;
+        document.getElementById('alerts-high-pill').innerText = `${data.high_count} High Priority`;
+
+        const container = document.getElementById('alerts-feed-container');
+        container.innerHTML = '';
+        data.alerts.slice(0, 15).forEach(a => {
+          const card = document.createElement('div');
+          const isCrit = a.severity === 'CRITICAL';
+          card.className = `p-4 rounded-xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white shadow-sm ${isCrit ? 'border-l-4 border-l-red-600' : 'border-l-4 border-l-amber-500'}`;
+          card.innerHTML = `
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded ${isCrit ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}">${a.alert_code}</span>
+                <span class="text-xs font-bold text-slate-800">${a.trigger_name}</span>
+                <span class="text-[10px] text-slate-400">Lead Time: ~${a.lead_time_months} Months</span>
+              </div>
+              <div class="text-xs font-semibold text-slate-900">${a.project_name} (${a.project_id})</div>
+              <p class="text-xs text-slate-600">${a.description}</p>
+              <div class="text-xs text-govAccent font-medium flex items-center gap-1.5 mt-1">
+                <i class="fa-solid fa-arrow-right"></i> <strong>Prescriptive Action:</strong> ${a.recommended_action}
+              </div>
+            </div>
+            <button onclick="openProjectModal('${a.project_id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg whitespace-nowrap">
+              Review Dossier
+            </button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error loading alerts:", err);
+      }
+    }
+
+    // Load AI vs Stats Benchmark (Dimension b)
+    async function loadAIvsStatsBenchmarks() {
+      try {
+        const res = await fetch('/api/benchmarks/ai-vs-stats');
+        const data = await res.json();
+
+        // Cost table
+        const costTbody = document.getElementById('benchmark-cost-table');
+        costTbody.innerHTML = '';
+        data.cost_benchmarks.forEach(m => {
+          const isAI = m.category.includes("AI/ML");
+          const tr = document.createElement('tr');
+          tr.className = isAI ? "bg-emerald-50/40 font-semibold" : "text-slate-600";
+          tr.innerHTML = `
+            <td class="py-2 px-3">${m.model_name}</td>
+            <td class="py-2 px-3 text-right">${m.rmse}</td>
+            <td class="py-2 px-3 text-right">${m.mae}</td>
+            <td class="py-2 px-3 text-right ${isAI ? 'text-emerald-700' : ''}">${m.r2_score}</td>
+          `;
+          costTbody.appendChild(tr);
+        });
+
+        // Risk table
+        const riskTbody = document.getElementById('benchmark-risk-table');
+        riskTbody.innerHTML = '';
+        data.risk_benchmarks.forEach(m => {
+          const isAI = m.category.includes("AI/ML");
+          const tr = document.createElement('tr');
+          tr.className = isAI ? "bg-emerald-50/40 font-semibold" : "text-slate-600";
+          tr.innerHTML = `
+            <td class="py-2 px-3">${m.model_name}</td>
+            <td class="py-2 px-3 text-right">${m.accuracy}</td>
+            <td class="py-2 px-3 text-right ${isAI ? 'text-emerald-700' : ''}">${m.roc_auc}</td>
+            <td class="py-2 px-3 text-right">${m.f1_score}</td>
+          `;
+          riskTbody.appendChild(tr);
+        });
+
+        // Findings Card
+        document.getElementById('benchmark-findings-card').innerHTML = `
+          <strong class="font-bold">Evaluation Summary:</strong> ${data.summary_findings.key_takeaway}
+        `;
+      } catch (err) {
+        console.error("Error loading AI vs Stats:", err);
+      }
+    }
+
+    // Load CUF Study (Dimension c)
+    async function loadCUFStudy() {
+      try {
+        const res = await fetch('/api/cuf-evaluation');
+        const data = await res.json();
+
+        document.getElementById('cuf-r2-val').innerText = `R² = ${data.regime_comparison.cuf_only.r2_score}`;
+        document.getElementById('enh-r2-val').innerText = `R² = ${data.regime_comparison.enhanced_cuf.r2_score}`;
+        document.getElementById('delta-r2-val').innerText = `+${data.regime_comparison.uplift.r2_gain_percentage}% Variance Explained`;
+
+        const tbody = document.getElementById('cuf-recommendations-table');
+        tbody.innerHTML = '';
+        data.mospi_policy_recommendations.forEach(rec => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50";
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-bold text-govAccent">#${rec.impact_rank}</td>
+            <td class="py-2 px-3 font-semibold text-slate-800 font-mono">${rec.field_name}</td>
+            <td class="py-2 px-3 text-slate-600">${rec.recommended_schema_type}</td>
+            <td class="py-2 px-3 text-slate-700">${rec.justification}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error loading CUF study:", err);
+      }
+    }
+
+    // Simulation Setup & Execution
+    async function loadSimulationProjects() {
+      try {
+        const res = await fetch('/api/projects?page_size=20&rag_status=RED');
+        const data = await res.json();
+        const sel = document.getElementById('sim-project-select');
+        sel.innerHTML = '';
+        data.projects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.project_id;
+          opt.innerText = `${p.project_id} - ${p.project_name.slice(0, 45)}...`;
+          sel.appendChild(opt);
+        });
+        runSimulation();
+      } catch (err) {
+        console.error("Error loading simulation projects:", err);
+      }
+    }
+
+    function updateSimSliders() {
+      const clearance = document.getElementById('sim-slider-clearance').value;
+      const inflation = document.getElementById('sim-slider-inflation').value;
+      const contractor = document.getElementById('sim-slider-contractor').value;
+
+      document.getElementById('slider-clearance-val').innerText = `${clearance > 0 ? '+' : ''}${clearance} Months`;
+      document.getElementById('slider-inflation-val').innerText = `${inflation > 0 ? '+' : ''}${inflation}%`;
+      document.getElementById('slider-contractor-val').innerText = `${contractor > 0 ? '+' : ''}${contractor}%`;
+    }
+
+    async function runSimulation() {
+      const pId = document.getElementById('sim-project-select').value;
+      if (!pId) return;
+
+      const clearance = parseInt(document.getElementById('sim-slider-clearance').value);
+      const inflation = parseFloat(document.getElementById('sim-slider-inflation').value);
+      const contractor = parseFloat(document.getElementById('sim-slider-contractor').value);
+
+      try {
+        const res = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: pId,
+            clearance_delay_months: clearance,
+            commodity_inflation_shock_pct: inflation,
+            contractor_efficiency_change_pct: contractor,
+            fast_track_clearances: clearance < 0
+          })
+        });
+        const data = await res.json();
+
+        document.getElementById('sim-base-cost').innerText = `₹${data.baseline.revised_cost_cr.toLocaleString()} Cr`;
+        document.getElementById('sim-base-overrun').innerText = `+${data.baseline.cost_overrun_pct}% Overrun`;
+
+        document.getElementById('sim-proj-cost').innerText = `₹${data.simulated.simulated_revised_cost_cr.toLocaleString()} Cr`;
+        document.getElementById('sim-proj-overrun').innerText = `+${data.simulated.simulated_cost_overrun_pct}% Overrun`;
+
+        document.getElementById('sim-proj-doc').innerText = data.simulated.simulated_completion_date;
+        document.getElementById('sim-shift-mo').innerText = `Shift: ${data.simulated.schedule_shift_months > 0 ? '+' : ''}${data.simulated.schedule_shift_months} Mos`;
+
+        document.getElementById('sim-proj-cri').innerText = `${data.simulated.simulated_cri_score} / 100`;
+        document.getElementById('sim-proj-rag').innerText = `Status: ${data.simulated.simulated_rag_status}`;
+
+        document.getElementById('sim-policy-text').innerText = data.policy_implication;
+      } catch (err) {
+        console.error("Error running simulation:", err);
+      }
+    }
+
+    // Copilot Actions
+    function sendQuickPrompt(promptText) {
+      document.getElementById('copilot-input').value = promptText;
+      sendCopilotMessage();
+    }
+
+    function handleCopilotKey(e) {
+      if (e.key === 'Enter') sendCopilotMessage();
+    }
+
+    async function sendCopilotMessage() {
+      const input = document.getElementById('copilot-input');
+      const query = input.value.trim();
+      if (!query) return;
+
+      appendChatMessage("user", query);
+      input.value = '';
+
+      try {
+        const res = await fetch('/api/copilot/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        const data = await res.json();
+        appendChatMessage("assistant", data.response);
+      } catch (err) {
+        appendChatMessage("assistant", "⚠️ Error communicating with Copilot backend.");
+      }
+    }
+
+    async function requestCopilotBrief() {
+      if (!currentProjectModalId) return;
+      closeModal();
+      toggleCopilot();
+      appendChatMessage("user", `Generate Ministerial Briefing for ${currentProjectModalId}`);
+
+      try {
+        const res = await fetch('/api/copilot/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: '', project_id: currentProjectModalId })
+        });
+        const data = await res.json();
+        appendChatMessage("assistant", data.executive_brief_markdown);
+      } catch (err) {
+        appendChatMessage("assistant", "⚠️ Error generating briefing.");
+      }
+    }
+
+    function appendChatMessage(sender, text) {
+      const feed = document.getElementById('copilot-chat-feed');
+      const msg = document.createElement('div');
+      if (sender === 'user') {
+        msg.className = "bg-govNavy text-white p-2.5 rounded-lg ml-6 text-right";
+        msg.innerText = text;
+      } else {
+        msg.className = "bg-slate-100 p-3 rounded-lg text-slate-800 mr-4 border border-slate-200 whitespace-pre-wrap leading-relaxed";
+        msg.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+      }
+      feed.appendChild(msg);
+      feed.scrollTop = feed.scrollHeight;
+    }
+  </script>
+</body>
+</html>
